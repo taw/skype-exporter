@@ -1,0 +1,20 @@
+#!/usr/bin/env ruby
+
+require "sqlite3"
+require "fileutils"
+
+class SkypeExporter
+  def initialize(db_path, output)
+    @db = SQLite3::Database.new(db_path)
+    @output = output
+  end
+
+  def export!
+
+  end
+end
+
+FileUtils.rm_rf "output"
+FileUtils.mkdir_p "output"
+se = SkypeExporter.new("main.db", "output")
+se.export!
