@@ -28,13 +28,10 @@ class MainDb
   end
 end
 
-class ExportDirectoryBuilder
-  def initialize(path)
-    @path = Pathname(path)
-  end
-  def prepare!
-    @path.rmtree if @path.exist?
-    @path.mkpath
+class SkypeExporter
+  def initialize(db_path, output_path)
+    @db = MainDb.new(db_path)
+    @path = Pathname(output_path)
   end
   def save_binary_file!(file_name, data)
     file_path = @path + file_name
@@ -43,6 +40,9 @@ class ExportDirectoryBuilder
       fh.write(data)
     end
     file_path
+  end
+  def get_all_data(table)
+    @db.get_all_data(table)
   end
   def save_profile_attachments!(skype_name, data)
     path_end_idx = 12+data[12..-1].index("\x00")
@@ -57,11 +57,11 @@ class ExportDirectoryBuilder
     warn "Avatar for #{skype_name} might be incorrect" unless data[0, 5].bytes == "\x00\xFF\xD8\xFF\xE0".bytes
     save_binary_file!("avatars/#{skype_name}.jpg", data[1..-1])
   end
-  def save_text_file!(file_name, data, converter)
+  def save_text_file!(file_name, converter, data)
     return if data.empty?
     (@path + file_name).open('w') do |fh|
       data.each_with_index do |row, i|
-        send(converter, row) do |key, val|
+        send("convert_#{converter}", row) do |key, val|
           fh.puts "#{key}: #{val}"
         end
         fh.puts "" unless i == data.size-1
@@ -93,36 +93,14 @@ class ExportDirectoryBuilder
       yield key, val.inspect
     end
   end
-  def export_accounts!(data)
-    save_text_file!("accounts.txt", data, :convert_account)
-  end
-  def export_contacts!(data)
-    save_text_file!("contacts.txt", data, :convert_account)
-  end
-  def export_sms!(data)
-    save_text_file!("sms.txt", data, :convert_basic)
-  end
-  def export_legacy_messages!(data)
-    save_text_file!("legacy_messages.txt", data, :convert_basic)
-  end
-  def export_alerts!(data)
-    save_text_file!("legacy_messages.txt", data, :convert_basic)
-  end
-end
-
-class SkypeExporter
-  def initialize(db_path, output_path)
-    @db = MainDb.new(db_path)
-    @out = ExportDirectoryBuilder.new(output_path)
-  end
-
   def export!
-    @out.prepare!
-    @out.export_accounts! @db.get_all_data("Accounts")
-    @out.export_contacts! @db.get_all_data("Contacts")
-    @out.export_sms! @db.get_all_data("SMSes")
-    @out.export_legacy_messages! @db.get_all_data("LegacyMessages")
-    @out.export_alerts! @db.get_all_data("Alerts")
+    @path.rmtree if @path.exist?
+    @path.mkpath
+    save_text_file! "accounts.txt", :account, get_all_data("Accounts")
+    save_text_file! "contacts.txt", :account, get_all_data("Contacts")
+    save_text_file! "sms.txt", :basic, get_all_data("SMSes")
+    save_text_file! "legacy_messages.txt", :basic, get_all_data("LegacyMessages")
+    save_text_file! "legacy_messages.txt", :basic, get_all_data("Alerts")
   end
 end
 
