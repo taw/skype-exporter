@@ -36,7 +36,7 @@ class ExportDirectoryBuilder
     @path = Pathname(path)
   end
   def prepare!
-    @path.rmtree
+    @path.rmtree if @path.exist?
     @path.mkpath
   end
   def save_binary_file!(file_name, data)
@@ -51,52 +51,42 @@ class ExportDirectoryBuilder
     warn "Avatar for #{skype_name} might be incorrect" unless data[0, 5].bytes == "\x00\xFF\xD8\xFF\xE0".bytes
     save_binary_file!("avatars/#{skype_name}.jpg", data[1..-1])
   end
-  def export_accounts!(data)
-    (@path + "accounts.txt").open('w') do |fh|
+
+  def save_text_file!(file_name, data, converter)
+    (@path + file_name).open('w') do |fh|
       data.each do |row|
-        row.each do |key, val|
-          case key
-          when "capabilities",
-               "synced_email",
-               "cbl_profile_blob"
-            # pass
-          when "avatar_image"
-            img_path = save_avatar!(row["skypename"], val)
-            fh.puts "#{key}: #{img_path}"
-          when "profile_attachments"
-            data_path = save_binary_file!("#{row["skypename"]}_attachment.data", val)
-            fh.puts "#{key}: #{data_path}"
-          else
-            fh.puts "#{key}: #{val.inspect}"
-          end
+        send(converter, row) do |key, val|
+          fh.puts "#{key}: #{val}"
         end
         fh.puts ""
       end
     end
   end
-  def export_contacts!(data)
-    (@path + "contacts.txt").open('w') do |fh|
-      data.each do |row|
-        row.each do |key, val|
-          case key
-          when "authorization_certificate",
-               "saved_directory_blob",
-               "buddyblob",
-               "capabilities"
-            # pass
-          when "avatar_image"
-            img_path = save_avatar!(row["skypename"], val)
-            fh.puts "#{key}: #{img_path}"
-          when "profile_attachments"
-            data_path = save_binary_file!("#{row["skypename"]}_attachment.data", val)
-            fh.puts "#{key}: #{data_path}"
-          else
-            fh.puts "#{key}: #{val.inspect}"
-          end
-        end
-        fh.puts ""
+  # accounts and contacts are very similar, so use the same code for both
+  def convert_account(row)
+    row.each do |key, val|
+      case key
+      when "capabilities",
+           "synced_email",
+           "cbl_profile_blob",
+           "authorization_certificate",
+           "saved_directory_blob",
+           "buddyblob"
+        # pass
+      when "avatar_image"
+        yield key, save_avatar!(row["skypename"], val)
+      when "profile_attachments"
+        yield key, save_binary_file!("#{row["skypename"]}_attachment.data", val)
+      else
+        yield key, val.inspect
       end
     end
+  end
+  def export_accounts!(data)
+    save_text_file!("accounts.txt", data, :convert_account)
+  end
+  def export_contacts!(data)
+    save_text_file!("contacts.txt", data, :convert_account)
   end
 end
 
