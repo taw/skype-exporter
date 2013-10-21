@@ -16,6 +16,7 @@ These are empty for me, but very naive converters added:
 * Alerts
 * LegacyMessages
 * SMSes
+* VideoMessages
 
 Metadata only, can be ignored:
 
@@ -23,18 +24,14 @@ Metadata only, can be ignored:
 
 Basic converters only, merge them into per-conversation log:
 
+* CallMembers
+* Calls
+* ChatMembers
+* Chats
+* ContactGroups
+* Conversations
+* Messages
+* Participants
 * Transfers
+* Videos
 * Voicemails
-
-Figure out what these are:
-
-* CallMembers - TODO
-* Calls - TODO
-* ChatMembers - TODO
-* Chats - TODO
-* ContactGroups - TODO
-* Conversations - TODO
-* Messages - TODO
-* Participants - TODO
-* VideoMessages - TODO
-* Videos - TODO
