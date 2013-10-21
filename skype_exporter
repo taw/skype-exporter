@@ -107,6 +107,20 @@ class SkypeExporter
       end
     end
   end
+  def convert_message(row)
+    row.each do |key, val|
+      case key
+      when "guid",
+           "extprop_chatmsg_ft_index_timestamp",
+           "crc"
+        # pass
+      when "timestamp"
+        yield key, val == 0 ? "-" : Time.at(val)
+      else
+        yield key, val.inspect
+      end
+    end
+  end
   def export!
     @path.rmtree if @path.exist?
     @path.mkpath
@@ -123,7 +137,7 @@ class SkypeExporter
     save_text_file! "chats.txt", :basic, get_all_data("Chats")
     save_text_file! "contact_groups.txt", :basic, get_all_data("ContactGroups")
     save_text_file! "conversations.txt", :basic, get_all_data("Conversations")
-    save_text_file! "messages.txt", :basic, get_all_data("Messages")
+    save_text_file! "messages.txt", :message, get_all_data("Messages")
     save_text_file! "participants.txt", :basic, get_all_data("Participants")
     save_text_file! "video_messages.txt", :basic, get_all_data("VideoMessages")
     save_text_file! "videos.txt", :basic, get_all_data("Videos")
