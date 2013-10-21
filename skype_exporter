@@ -2,19 +2,45 @@
 
 require "sqlite3"
 require "fileutils"
+require "pathname"
+require "json"
 
-class SkypeExporter
-  def initialize(db_path, output)
-    @db = SQLite3::Database.new(db_path)
-    @output = output
+class MainDb
+  def initialize(path)
+    @path = path
+    @db = SQLite3::Database.new(path)
   end
-
-  def export!
-
+  def account_data
+    []
   end
 end
 
-FileUtils.rm_rf "output"
-FileUtils.mkdir_p "output"
+class ExportDirectoryBuilder
+  def initialize(path)
+    @path = Pathname(path)
+  end
+  def prepare!
+    @path.rmtree
+    @path.mkpath
+  end
+  def export_accounts!(data)
+    (@path + "accounts.txt").open('w') do |fh|
+      fh.puts data.to_json
+    end
+  end
+end
+
+class SkypeExporter
+  def initialize(db_path, output_path)
+    @db = MainDb.new(db_path)
+    @out = ExportDirectoryBuilder.new(output_path)
+  end
+
+  def export!
+    @out.prepare!
+    @out.export_accounts! @db.account_data
+  end
+end
+
 se = SkypeExporter.new("main.db", "output")
 se.export!
