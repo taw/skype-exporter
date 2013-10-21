@@ -6,26 +6,32 @@ Export your data from Skype (logs, contact lists etc.)
 main.db tables
 ==============
 
-* Accounts - basic functionality working
-* Contacts - basic functionality working
+Basic functionality working:
 
-* DbMeta - metadata only, no need to export it
+* Accounts
+* Contacts
 
-* Alerts - TODO
+These are empty for me, but very naive converters added:
+
+* Alerts
+* LegacyMessages
+* SMSes
+
+Metadata only, can be ignored:
+
+* DbMeta
+
+Figure out what these are:
+
 * CallMembers - TODO
 * Calls - TODO
 * ChatMembers - TODO
 * Chats - TODO
 * ContactGroups - TODO
 * Conversations - TODO
-* LegacyMessages - TODO
 * Messages - TODO
 * Participants - TODO
-* SMSes - TODO
 * Transfers - TODO
 * VideoMessages - TODO
 * Videos - TODO
 * Voicemails - TODO
-
-Other things todo:
-* contacts - save profile attachments correctly

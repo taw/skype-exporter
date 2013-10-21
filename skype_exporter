@@ -23,11 +23,8 @@ class MainDb
     end
     rv
   end
-  def account_data
-    get_data("select * from Accounts")
-  end
-  def contact_data
-    get_data("select * from Contacts")
+  def get_all_data(table)
+    get_data("select * from #{table}")
   end
 end
 
@@ -61,6 +58,7 @@ class ExportDirectoryBuilder
     save_binary_file!("avatars/#{skype_name}.jpg", data[1..-1])
   end
   def save_text_file!(file_name, data, converter)
+    return if data.empty?
     (@path + file_name).open('w') do |fh|
       data.each_with_index do |row, i|
         send(converter, row) do |key, val|
@@ -90,11 +88,25 @@ class ExportDirectoryBuilder
       end
     end
   end
+  def convert_basic(row)
+    row.each do |key, val|
+      yield key, val.inspect
+    end
+  end
   def export_accounts!(data)
-    save_text_file!("accounts.txt", data, :convert_account) unless data.empty?
+    save_text_file!("accounts.txt", data, :convert_account)
   end
   def export_contacts!(data)
-    save_text_file!("contacts.txt", data, :convert_account) unless data.empty?
+    save_text_file!("contacts.txt", data, :convert_account)
+  end
+  def export_sms!(data)
+    save_text_file!("sms.txt", data, :convert_basic)
+  end
+  def export_legacy_messages!(data)
+    save_text_file!("legacy_messages.txt", data, :convert_basic)
+  end
+  def export_alerts!(data)
+    save_text_file!("legacy_messages.txt", data, :convert_basic)
   end
 end
 
@@ -106,8 +118,11 @@ class SkypeExporter
 
   def export!
     @out.prepare!
-    @out.export_accounts! @db.account_data
-    @out.export_contacts! @db.contact_data
+    @out.export_accounts! @db.get_all_data("Accounts")
+    @out.export_contacts! @db.get_all_data("Contacts")
+    @out.export_sms! @db.get_all_data("SMSes")
+    @out.export_legacy_messages! @db.get_all_data("LegacyMessages")
+    @out.export_alerts! @db.get_all_data("Alerts")
   end
 end
 
