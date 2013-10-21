@@ -47,18 +47,26 @@ class ExportDirectoryBuilder
     end
     file_path
   end
+  def save_profile_attachments!(skype_name, data)
+    path_end_idx = 12+data[12..-1].index("\x00")
+    path = data[12...path_end_idx]
+    image_start_idx = path_end_idx+1+data[path_end_idx+1..-1].index("\x00")
+    image = data[image_start_idx+1..-1]
+    warn "Attachment isn't called MyAvatar" unless path == "profile://#{skype_name}/MyAvatar"
+    warn "Attachment for #{skype_name} doesn't look like JPEG image" unless image[0,4].bytes == "\xFF\xD8\xFF\xE0".bytes
+    save_binary_file!("attachments/#{skype_name}.jpg", image)
+  end
   def save_avatar!(skype_name, data)
     warn "Avatar for #{skype_name} might be incorrect" unless data[0, 5].bytes == "\x00\xFF\xD8\xFF\xE0".bytes
     save_binary_file!("avatars/#{skype_name}.jpg", data[1..-1])
   end
-
   def save_text_file!(file_name, data, converter)
     (@path + file_name).open('w') do |fh|
-      data.each do |row|
+      data.each_with_index do |row, i|
         send(converter, row) do |key, val|
           fh.puts "#{key}: #{val}"
         end
-        fh.puts ""
+        fh.puts "" unless i == data.size-1
       end
     end
   end
@@ -76,17 +84,17 @@ class ExportDirectoryBuilder
       when "avatar_image"
         yield key, save_avatar!(row["skypename"], val)
       when "profile_attachments"
-        yield key, save_binary_file!("#{row["skypename"]}_attachment.data", val)
+        yield key, save_profile_attachments!(row["skypename"], val)
       else
         yield key, val.inspect
       end
     end
   end
   def export_accounts!(data)
-    save_text_file!("accounts.txt", data, :convert_account)
+    save_text_file!("accounts.txt", data, :convert_account) unless data.empty?
   end
   def export_contacts!(data)
-    save_text_file!("contacts.txt", data, :convert_account)
+    save_text_file!("contacts.txt", data, :convert_account) unless data.empty?
   end
 end
 
