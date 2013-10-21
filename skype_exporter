@@ -4,6 +4,7 @@ require "sqlite3"
 require "fileutils"
 require "pathname"
 require "json"
+require "pp"
 
 class MainDb
   def initialize(path)
@@ -25,6 +26,9 @@ class MainDb
   def account_data
     get_data("select * from Accounts")
   end
+  def contact_data
+    get_data("select * from Contacts")
+  end
 end
 
 class ExportDirectoryBuilder
@@ -42,13 +46,31 @@ class ExportDirectoryBuilder
     end
     file_path
   end
+  def save_avatar!(skype_name, data)
+    warn "Avatar for #{skype_name} might be incorrect" unless data[0, 5].bytes == "\x00\xFF\xD8\xFF\xE0".bytes
+    save_binary_file("#{skype_name}.jpg", data[1..-1])
+  end
   def export_accounts!(data)
     (@path + "accounts.txt").open('w') do |fh|
       data.each do |row|
         row.each do |key, val|
           if key == "avatar_image"
-            # Not sure what initial 00 is for
-            img_path = save_binary_file("#{row["skypename"]}.jpg", val[1..-1])
+            img_path = save_avatar!(row["skypename"], val)
+            fh.puts "#{key}: #{img_path}"
+          else
+            fh.puts "#{key}: #{val.inspect}"
+          end
+        end
+        fh.puts ""
+      end
+    end
+  end
+  def export_contacts!(data)
+    (@path + "contacts.txt").open('w') do |fh|
+      data.each do |row|
+        row.each do |key, val|
+          if key == "avatar_image"
+            img_path = save_avatar!(row["skypename"], val)
             fh.puts "#{key}: #{img_path}"
           else
             fh.puts "#{key}: #{val.inspect}"
@@ -69,6 +91,7 @@ class SkypeExporter
   def export!
     @out.prepare!
     @out.export_accounts! @db.account_data
+    @out.export_contacts! @db.contact_data
   end
 end
 

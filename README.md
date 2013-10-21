@@ -7,15 +7,17 @@ main.db tables
 ==============
 
 * Accounts - basic functionality working
+* Contacts - basic functionality working
+
+* DbMeta - metadata only, no need to export it
+
 * Alerts - TODO
 * CallMembers - TODO
 * Calls - TODO
 * ChatMembers - TODO
 * Chats - TODO
 * ContactGroups - TODO
-* Contacts - TODO
 * Conversations - TODO
-* DbMeta - metadata, no need to export it
 * LegacyMessages - TODO
 * Messages - TODO
 * Participants - TODO
