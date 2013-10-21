@@ -10,8 +10,20 @@ class MainDb
     @path = path
     @db = SQLite3::Database.new(path)
   end
+  def get_data(query)
+    columns, *rows = @db.execute2(query)
+    rv = []
+    rows.each do |row|
+      ht = {}
+      (0...columns.size).each do |i|
+        ht[columns[i]] = row[i] unless row[i].nil?
+      end
+      rv << ht
+    end
+    rv
+  end
   def account_data
-    []
+    get_data("select * from Accounts")
   end
 end
 
@@ -23,9 +35,27 @@ class ExportDirectoryBuilder
     @path.rmtree
     @path.mkpath
   end
+  def save_binary_file(file_name, data)
+    file_path = @path + file_name
+    file_path.open('wb') do |fh|
+      fh.write(data)
+    end
+    file_path
+  end
   def export_accounts!(data)
     (@path + "accounts.txt").open('w') do |fh|
-      fh.puts data.to_json
+      data.each do |row|
+        row.each do |key, val|
+          if key == "avatar_image"
+            # Not sure what initial 00 is for
+            img_path = save_binary_file("#{row["skypename"]}.jpg", val[1..-1])
+            fh.puts "#{key}: #{img_path}"
+          else
+            fh.puts "#{key}: #{val.inspect}"
+          end
+        end
+        fh.puts ""
+      end
     end
   end
 end

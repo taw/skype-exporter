@@ -6,7 +6,7 @@ Export your data from Skype (logs, contact lists etc.)
 main.db tables
 ==============
 
-* Accounts - TODO
+* Accounts - basic functionality working
 * Alerts - TODO
 * CallMembers - TODO
 * Calls - TODO
