@@ -24,6 +24,7 @@ Metadata only, can be ignored:
 Basic converters only, merge them into per-conversation log:
 
 * Transfers
+* Voicemails
 
 Figure out what these are:
 
@@ -37,4 +38,3 @@ Figure out what these are:
 * Participants - TODO
 * VideoMessages - TODO
 * Videos - TODO
-* Voicemails - TODO

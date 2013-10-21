@@ -116,6 +116,7 @@ class SkypeExporter
     save_text_file! "legacy_messages.txt", :basic, get_all_data("LegacyMessages")
     save_text_file! "alerts.txt", :basic, get_all_data("Alerts")
     save_text_file! "transfers.txt", :transfer, get_all_data("Transfers")
+    save_text_file! "voicemails.txt", :basic, get_all_data("Voicemails")
   end
 end
 
