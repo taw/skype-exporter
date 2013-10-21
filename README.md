@@ -21,6 +21,10 @@ Metadata only, can be ignored:
 
 * DbMeta
 
+Basic converters only, merge them into per-conversation log:
+
+* Transfers
+
 Figure out what these are:
 
 * CallMembers - TODO
@@ -31,7 +35,6 @@ Figure out what these are:
 * Conversations - TODO
 * Messages - TODO
 * Participants - TODO
-* Transfers - TODO
 * VideoMessages - TODO
 * Videos - TODO
 * Voicemails - TODO

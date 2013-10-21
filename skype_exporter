@@ -93,6 +93,20 @@ class SkypeExporter
       yield key, val.inspect
     end
   end
+  def convert_transfer(row)
+    row.each do |key, val|
+      case key
+      when "nodeid",
+           "extprop_transfer_alias",
+           "chatmsg_guid"
+        # pass
+      when "starttime", "finishtime"
+        yield key, val == 0 ? "-" : Time.at(val)
+      else
+        yield key, val.inspect
+      end
+    end
+  end
   def export!
     @path.rmtree if @path.exist?
     @path.mkpath
@@ -100,7 +114,8 @@ class SkypeExporter
     save_text_file! "contacts.txt", :account, get_all_data("Contacts")
     save_text_file! "sms.txt", :basic, get_all_data("SMSes")
     save_text_file! "legacy_messages.txt", :basic, get_all_data("LegacyMessages")
-    save_text_file! "legacy_messages.txt", :basic, get_all_data("Alerts")
+    save_text_file! "alerts.txt", :basic, get_all_data("Alerts")
+    save_text_file! "transfers.txt", :transfer, get_all_data("Transfers")
   end
 end
 
