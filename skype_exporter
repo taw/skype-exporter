@@ -39,8 +39,9 @@ class ExportDirectoryBuilder
     @path.rmtree
     @path.mkpath
   end
-  def save_binary_file(file_name, data)
+  def save_binary_file!(file_name, data)
     file_path = @path + file_name
+    file_path.dirname.mkpath
     file_path.open('wb') do |fh|
       fh.write(data)
     end
@@ -48,15 +49,23 @@ class ExportDirectoryBuilder
   end
   def save_avatar!(skype_name, data)
     warn "Avatar for #{skype_name} might be incorrect" unless data[0, 5].bytes == "\x00\xFF\xD8\xFF\xE0".bytes
-    save_binary_file("#{skype_name}.jpg", data[1..-1])
+    save_binary_file!("avatars/#{skype_name}.jpg", data[1..-1])
   end
   def export_accounts!(data)
     (@path + "accounts.txt").open('w') do |fh|
       data.each do |row|
         row.each do |key, val|
-          if key == "avatar_image"
+          case key
+          when "capabilities",
+               "synced_email",
+               "cbl_profile_blob"
+            # pass
+          when "avatar_image"
             img_path = save_avatar!(row["skypename"], val)
             fh.puts "#{key}: #{img_path}"
+          when "profile_attachments"
+            data_path = save_binary_file!("#{row["skypename"]}_attachment.data", val)
+            fh.puts "#{key}: #{data_path}"
           else
             fh.puts "#{key}: #{val.inspect}"
           end
@@ -69,9 +78,18 @@ class ExportDirectoryBuilder
     (@path + "contacts.txt").open('w') do |fh|
       data.each do |row|
         row.each do |key, val|
-          if key == "avatar_image"
+          case key
+          when "authorization_certificate",
+               "saved_directory_blob",
+               "buddyblob",
+               "capabilities"
+            # pass
+          when "avatar_image"
             img_path = save_avatar!(row["skypename"], val)
             fh.puts "#{key}: #{img_path}"
+          when "profile_attachments"
+            data_path = save_binary_file!("#{row["skypename"]}_attachment.data", val)
+            fh.puts "#{key}: #{data_path}"
           else
             fh.puts "#{key}: #{val.inspect}"
           end

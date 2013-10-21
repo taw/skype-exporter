@@ -26,3 +26,6 @@ main.db tables
 * VideoMessages - TODO
 * Videos - TODO
 * Voicemails - TODO
+
+Other things todo:
+* contacts - save profile attachments correctly
