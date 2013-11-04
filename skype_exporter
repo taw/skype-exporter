@@ -34,10 +34,12 @@ class LogFile
   end
   def add!(tm, from, msg)
     tm = Time.at(tm).utc.strftime("%Y-%m-%d %H:%M:%S")
-    @msgs << "#{tm} #{from}: #{msg}\n"
+    @msgs << [tm, from, msg]
   end
   def to_s
-    @msgs.join("\n")
+    @msgs.sort.map{|tm,from,msg|
+      "#{tm} #{from}: #{msg}\n"
+    }.join("\n")
   end
 end
 
