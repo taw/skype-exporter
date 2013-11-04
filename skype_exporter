@@ -28,10 +28,26 @@ class MainDb
   end
 end
 
+class LogFile
+  def initialize
+    @msgs = []
+  end
+  def add!(tm, from, msg)
+    @msgs << "#{Time.at(tm)} #{from}: #{msg}\n"
+  end
+  def to_s
+    @msgs.join("\n")
+  end
+end
+
 class SkypeExporter
   def initialize(db_path, output_path)
     @db = MainDb.new(db_path)
     @path = Pathname(output_path)
+    @logs = {}
+  end
+  def log(key)
+    @logs[key] ||= LogFile.new
   end
   def save_binary_file!(file_name, data)
     file_path = @path + file_name
@@ -115,12 +131,7 @@ class SkypeExporter
     dp = row["dialog_partner"] || a
     path = "#{dp}.txt"
 
-    if b
-      Pathname("output/log/").mkpath
-      open("output/log/#{path}", "ab"){|fh|
-        fh.puts "#{Time.at(tm)} #{fd} (#{a}): #{b}\n\n"
-      }
-    end
+    log(dp).add! tm, "#{fd} (#{a})", b if b
 
     row.each do |key, val|
       case key
@@ -155,6 +166,9 @@ class SkypeExporter
     save_text_file! "participants.txt", :basic, get_all_data("Participants")
     save_text_file! "video_messages.txt", :basic, get_all_data("VideoMessages")
     save_text_file! "videos.txt", :basic, get_all_data("Videos")
+    @logs.each do |key, log|
+      save_binary_file!("logs/#{key}.txt", log.to_s)
+    end
   end
 end
 
