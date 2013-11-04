@@ -32,9 +32,13 @@ class LogFile
   def initialize
     @msgs = []
   end
+  def cleanup_xml(msg)
+    msg.gsub(%r[<ss type="(?:\S+?)">(\S+)</ss>]){ $1 }
+  end
+
   def add!(tm, from, msg)
     tm = Time.at(tm).utc.strftime("%Y-%m-%d %H:%M:%S")
-    @msgs << [tm, from, msg]
+    @msgs << [tm, from, cleanup_xml(msg)]
   end
   def to_s
     @msgs.sort.map{|tm,from,msg|

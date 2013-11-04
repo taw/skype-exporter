@@ -30,8 +30,11 @@ Basic converters only, merge them into per-conversation log:
 * Chats
 * ContactGroups
 * Conversations
-* Messages
 * Participants
 * Transfers
 * Videos
 * Voicemails
+
+Properly converted:
+
+* Messages
