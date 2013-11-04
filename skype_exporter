@@ -33,8 +33,15 @@ class LogFile
     @msgs = []
   end
   def cleanup_xml(msg)
+    # Still need to be converted:
+    #   <partlist alt="">
     msg.gsub(%r[<ss type="(?:\S+?)">(\S+)</ss>]){ $1 }
        .gsub(%r[<a href="([^"]+)">\1</a>]){ $1 }
+       .gsub(%r[&apos;], "'")
+       .gsub(%r[&quot;], '"')
+       .gsub(%r[&gt;], ">")
+       .gsub(%r[&lt;], "<") # This interferes with XML unescaping
+       .gsub(%r[&amp;], "&")
   end
 
   def add!(tm, from, msg)
