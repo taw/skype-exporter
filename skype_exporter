@@ -108,6 +108,20 @@ class SkypeExporter
     end
   end
   def convert_message(row)
+    a  = row["author"]
+    fd = row["from_dispname"]
+    b  = row["body_xml"]
+    tm = row["timestamp"]
+    dp = row["dialog_partner"] || a
+    path = "#{dp}.txt"
+
+    if b
+      Pathname("output/log/").mkpath
+      open("output/log/#{path}", "ab"){|fh|
+        fh.puts "#{Time.at(tm)} #{fd} (#{a}): #{b}\n\n"
+      }
+    end
+
     row.each do |key, val|
       case key
       when "guid",
